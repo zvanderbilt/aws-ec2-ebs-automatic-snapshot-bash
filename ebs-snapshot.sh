@@ -1,5 +1,4 @@
 #!/bin/bash
-export PATH=$PATH:/usr/local/bin/:/usr/bin
 
 # Safety feature: exit script if error is returned, or if variables not set.
 # Exit if a pipeline results in an error.
@@ -30,6 +29,7 @@ set -o pipefail
 # Get Instance Details
 instance_id=$(wget -q -O- http://169.254.169.254/latest/meta-data/instance-id)
 region=$(wget -q -O- http://169.254.169.254/latest/meta-data/placement/availability-zone | sed -e 's/\([1-9]\).$/\1/g')
+billto=$(ec2-describe-tags --filter "resource-type=instance" --filter "resource-id=$(ec2-metadata -i | cut -d ' ' -f2)" --filter "key=Name" | cut -f5)
 
 # Set Logging Options
 logfile="/var/log/ebs-snapshot.log"
@@ -84,6 +84,7 @@ snapshot_volumes() {
 		# Add a "CreatedBy:AutomatedBackup" tag to the resulting snapshot.
 		# Why? Because we only want to purge snapshots taken by the script later, and not delete snapshots manually taken.
 		aws ec2 create-tags --region $region --resource $snapshot_id --tags Key=CreatedBy,Value=AutomatedBackup
+		aws ec2 create-tags --region $region --resource $snapshot_id --tags Key="Server Bill To",Value=$billto
 	done
 }
 
