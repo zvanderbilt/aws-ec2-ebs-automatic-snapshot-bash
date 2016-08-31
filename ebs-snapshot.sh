@@ -29,7 +29,7 @@ set -o pipefail
 # Get Instance Details
 instance_id=$(wget -q -O- http://169.254.169.254/latest/meta-data/instance-id)
 region=$(wget -q -O- http://169.254.169.254/latest/meta-data/placement/availability-zone | sed -e 's/\([1-9]\).$/\1/g')
-billto=$(ec2-describe-tags --filter "resource-type=instance" --filter "resource-id=$(ec2-metadata -i | cut -d ' ' -f2)" --filter "key=Name" | cut -f5)
+billto=$(ec2-describe-tags --region=$region --filter "resource-type=instance" --filter "resource-id=$(ec2-metadata -i | cut -d ' ' -f2)" --filter "key=Name" | cut -f5)
 
 # Set Logging Options
 logfile="/var/log/ebs-snapshot.log"
